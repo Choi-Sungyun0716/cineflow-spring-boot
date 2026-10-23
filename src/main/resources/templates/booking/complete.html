@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko" class="no-js" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>CineFlow | 예매 완료</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="CineFlow 예매 완료">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone-no">
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Dosis:400,700,500|Nunito:300,400,600"/>
+    <link rel="stylesheet" th:href="@{/css/plugins.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/home-cinema.css}">
+</head>
+<body>
+<div id="preloader">
+    <img class="logo" th:src="@{/images/logo1.png}" alt="logo" width="119" height="58">
+    <div id="status"><span></span><span></span></div>
+</div>
+
+<header th:replace="~{fragments/site-layout :: siteHeader('booking')}"></header>
+
+<main class="cinema-page booking-page booking-complete-page">
+    <section class="cinema-page-hero booking-hero complete-hero">
+        <div class="container">
+            <ul class="cinema-breadcrumb">
+                <li><a th:href="@{/}">홈</a></li>
+                <li><a th:href="@{/booking}">예매</a></li>
+                <li><a th:href="@{/booking/history}">예매내역</a></li>
+                <li>예매 상세</li>
+            </ul>
+
+            <div class="booking-hero__intro">
+                <div>
+                    <span class="section-chip">BOOKING RESULT</span>
+                    <h1>예매 상세</h1>
+                    <p>예매 완료 또는 취소 상태, 예매번호, 좌석, 결제 정보를 티켓형 요약 카드로 다시 확인할 수 있도록 정리했습니다.</p>
+                </div>
+            </div>
+
+            <ol class="booking-stepper">
+                <li><span>01</span><strong>상영정보</strong></li>
+                <li><span>02</span><strong>인원 · 좌석</strong></li>
+                <li><span>03</span><strong>결제</strong></li>
+                <li class="is-active"><span>04</span><strong>완료</strong></li>
+            </ol>
+        </div>
+    </section>
+
+    <section class="cinema-page-body booking-body complete-body">
+        <div class="container">
+            <div th:if="${successMessage}" class="booking-feedback-banner is-success">
+                <strong>처리가 완료되었습니다.</strong>
+                <span th:text="${successMessage}">예매가 취소되었습니다.</span>
+            </div>
+            <div th:if="${errorMessage}" class="booking-feedback-banner">
+                <strong>작업을 진행하지 못했습니다.</strong>
+                <span th:text="${errorMessage}">예매번호를 다시 확인해주세요.</span>
+            </div>
+
+            <div th:if="${booking == null}" class="empty-state-card">
+                <h3>표시할 예매 정보가 없습니다.</h3>
+                <p>예매번호를 다시 확인하거나 예매내역 페이지로 이동해주세요.</p>
+                <div class="history-card-actions">
+                    <a th:href="@{/booking/history}" class="hero-btn primary">예매내역 보기</a>
+                    <a th:href="@{/}" class="hero-btn secondary">메인으로 이동</a>
+                </div>
+            </div>
+
+            <div th:if="${booking != null}">
+                <article class="booking-panel complete-success-hero" th:classappend="${booking.canceled} ? ' complete-success-hero--cancel' : ''">
+                    <div class="success-state-badge">
+                        <span th:text="${booking.canceled ? '!' : 'OK'}">OK</span>
+                        <span th:text="${booking.canceled ? '취소 완료' : '예매 완료'}">예매 완료</span>
+                    </div>
+                    <h2 th:text="${booking.canceled ? '예매가 취소되었습니다.' : '예매가 정상적으로 완료되었습니다.'}">예매가 정상적으로 완료되었습니다.</h2>
+                    <p th:text="${booking.canceled ? '좌석과 결제 상태가 함께 복구되었으며, 취소 정보는 예매내역과 관리자 페이지에 반영됩니다.' : '상영 시작 전까지 취소가 가능하며, 예매내역과 관리자 페이지에서 동일한 상태를 확인할 수 있습니다.'}">예매 안내 문구</p>
+                    <div class="success-meta-grid">
+                        <div class="success-meta-item">
+                            <span>예매번호</span>
+                            <strong th:text="${booking.bookingCode != null ? booking.bookingCode : '-'}">CF20260404-1940-T8M2</strong>
+                        </div>
+                        <div class="success-meta-item">
+                            <span>현재 상태</span>
+                            <strong th:class="${booking.stateCssClass}" th:text="${booking.stateLabel}">예매 완료</strong>
+                        </div>
+                        <div class="success-meta-item">
+                            <span th:text="${booking.canceled ? '취소 시각' : '결제 시각'}">결제 시각</span>
+                            <strong th:text="${booking.canceled ? (booking.canceledAt != null ? #temporals.format(booking.canceledAt, 'yyyy.MM.dd HH:mm') : '-') : (paymentResult != null && paymentResult.paidAt != null ? #temporals.format(paymentResult.paidAt, 'yyyy.MM.dd HH:mm') : '-')}">2026.04.03 09:58</strong>
+                        </div>
+                    </div>
+                </article>
+
+                <div class="complete-main-grid">
+                    <section class="complete-primary-stack">
+                        <article class="booking-panel complete-booking-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-step">TICKET</span>
+                                    <h2>상영 · 예매 정보</h2>
+                                </div>
+                                <span class="summary-chip" th:text="${booking.cancelAvailabilityLabel}">취소 가능</span>
+                            </div>
+                            <div class="summary-card complete-summary-card">
+                                <img th:src="@{${booking.posterImageUrl}}"
+                                     th:alt="${booking.posterAltText}"
+                                     th:onerror="|this.onerror=null;this.src='@{/images/uploads/movie-single.jpg}'|">
+                                <div class="summary-text">
+                                    <p class="summary-movie" th:text="${booking.movieTitleText}">영화 제목</p>
+                                    <div class="meta-line">
+                                        <em th:class="${booking.ageBadgeCssClass}" th:text="${booking.ageBadgeText}">12</em>
+                                        <span th:text="${booking.venueDisplayText}">CineFlow 강남 | 1관(IMAX)</span>
+                                    </div>
+                                    <ul class="complete-info-list">
+                                        <li><span>극장</span><strong th:text="${booking.theaterNameText}">CineFlow 강남</strong></li>
+                                        <li><span>상영관</span><strong th:text="${booking.screenDisplayText}">1관 (IMAX)</strong></li>
+                                        <li><span>상영시간</span><strong th:text="${booking.showStartDateTimeWithDayText}">2026.04.04 (금) 19:40</strong></li>
+                                        <li><span>종료예정</span><strong th:text="${booking.showEndTimeText}">21:38</strong></li>
+                                        <li><span>좌석</span><strong th:text="${booking.seatNamesText}">H10, H11, H12</strong></li>
+                                        <li><span>인원</span><strong th:text="${booking.peopleCountText}">3명</strong></li>
+                                        <li th:if="${booking.canceled}">
+                                            <span>취소 사유</span>
+                                            <strong th:text="${booking.cancelReasonOrDefault}">사용자 요청</strong>
+                                        </li>
+                                    </ul>
+                                    <div class="format-tags">
+                                        <em th:text="${booking.screenTypeText}">2D</em>
+                                        <em th:text="${booking.stateLabel}">예매 완료</em>
+                                        <em th:if="${booking.canceled}">취소 반영</em>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="booking-panel complete-payment-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-step">PAYMENT</span>
+                                    <h2>결제 · 환불 정보</h2>
+                                </div>
+                            </div>
+                            <div class="amount-breakdown complete-amount-breakdown">
+                                <ul>
+                                    <li><span>총 결제 금액</span><strong th:text="${booking.totalPriceText}">45,000원</strong></li>
+                                    <li><span>예매자 이름</span><strong th:text="${booking.customerNameText}">김민서</strong></li>
+                                    <li><span>연락처</span><strong th:text="${booking.customerPhoneText}">01012345678</strong></li>
+                                </ul>
+                                <div class="amount-total">
+                                    <span th:text="${booking.canceled ? '환불 처리 금액' : '결제 완료 금액'}">결제 완료 금액</span>
+                                    <strong th:text="${booking.totalPriceText}">45,000원</strong>
+                                </div>
+                                <ul class="payment-meta-list">
+                                    <li><span>결제수단</span><strong th:text="${paymentResult != null ? paymentResult.paymentMethodLabel : '-'}">카드</strong></li>
+                                    <li><span>결제상태</span><strong th:text="${paymentResult != null ? paymentResult.paymentStatusLabel : '-'}">결제 완료</strong></li>
+                                    <li><span>결제 거래번호</span><strong th:text="${paymentResult != null ? paymentResult.transactionId : '-'}">PAY-20260403095800-ABC123</strong></li>
+                                    <li th:if="${booking.canceled}"><span>취소 거래번호</span><strong th:text="${paymentResult != null ? paymentResult.cancelTransactionId : '-'}">CAN-20260403103000-ABC123</strong></li>
+                                    <li th:if="${booking.canceled}"><span>환불 시각</span><strong th:text="${paymentResult != null && paymentResult.canceledAt != null ? #temporals.format(paymentResult.canceledAt, 'yyyy.MM.dd HH:mm') : '-'}">2026.04.03 10:30</strong></li>
+                                </ul>
+                            </div>
+                        </article>
+                    </section>
+
+                    <aside class="complete-side-stack">
+                        <article class="booking-panel mobile-ticket-card" th:if="${!booking.canceled}">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-step">MOBILE TICKET</span>
+                                    <h2>모바일 티켓</h2>
+                                </div>
+                            </div>
+                            <div class="ticket-frame">
+                                <div class="qr-placeholder" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                                <p class="ticket-code">예매번호 <strong th:text="${booking.bookingCode}">CF20260404-1940-T8M2</strong></p>
+                                <p class="ticket-time" th:text="${'상영 시작 ' + booking.showStartTimeText + ' 전까지 입장을 준비해주세요.'}">상영 시작 19:40 전까지 입장을 준비해주세요.</p>
+                                <p class="ticket-note">예매번호 기준으로 좌석과 결제 정보가 연결되어 있습니다.</p>
+                            </div>
+                        </article>
+
+                        <article class="booking-panel mobile-ticket-card" th:if="${booking.canceled}">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-step">CANCEL</span>
+                                    <h2>취소 안내</h2>
+                                </div>
+                            </div>
+                            <div class="ticket-frame">
+                                <p class="ticket-code">예매번호 <strong th:text="${booking.bookingCode}">CF20260404-1940-T8M2</strong></p>
+                                <p class="ticket-time">이 예매는 취소 완료 상태입니다. 같은 좌석은 다른 예매에서 다시 선택할 수 있습니다.</p>
+                                <p class="ticket-note" th:text="${'취소 사유: ' + booking.cancelReasonOrDefault}">취소 사유: 사용자 요청</p>
+                            </div>
+                        </article>
+
+                        <article class="booking-panel complete-cta-card">
+                            <div class="panel-head">
+                                <div>
+                                    <span class="panel-step">NEXT ACTION</span>
+                                    <h2>다음 단계</h2>
+                                </div>
+                            </div>
+                            <div class="summary-cta complete-cta-grid">
+                                <a th:href="${historyUrl}" class="hero-btn primary">예매내역 보기</a>
+                                <form th:if="${canCancel}" th:action="@{/booking/cancel}" method="post" class="inline-post-form inline-post-form--full">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" name="bookingCode" th:value="${booking.bookingCode}">
+                                    <input type="hidden" name="cancelReason" value="사용자 요청">
+                                    <input type="hidden" name="redirectTo" th:value="${historyUrl}">
+                                    <button type="submit" class="hero-btn secondary">예매 취소</button>
+                                </form>
+                                <a th:href="@{/booking}" class="hero-btn secondary">다시 예매하기</a>
+                                <a th:href="@{/}" class="hero-btn secondary">메인으로 이동</a>
+                                <a th:href="@{/movies}" class="hero-btn secondary">전체 영화 보기</a>
+                                <a th:if="${#authorization.expression('hasRole(''ADMIN'')')}" th:href="@{/admin}" class="hero-btn secondary">관리자 보기</a>
+                            </div>
+                            <div class="seat-summary-links complete-sub-links">
+                                <a th:href="@{/support#cancel-policy}">취소 · 환불 안내</a>
+                                <a th:href="@{/support}">고객센터</a>
+                                <a th:href="@{/support#faq}">FAQ</a>
+                            </div>
+                        </article>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/site-layout :: siteFooter}"></footer>
+
+<script th:src="@{/js/jquery.js}"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/plugins2.js}"></script>
+<script th:src="@{/js/custom.js}"></script>
+</body>
+</html>

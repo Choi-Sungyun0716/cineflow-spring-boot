@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" class="no-js" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>CineFlow | 페이지를 찾을 수 없음</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Dosis:400,700,500|Nunito:300,400,600"/>
+    <link rel="stylesheet" th:href="@{/css/plugins.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/home-cinema.css}">
+</head>
+<body>
+<div class="page-single-2">
+    <div class="container">
+        <div class="row">
+            <div class="middle-content">
+                <a th:href="@{/}">
+                    <img class="md-logo" th:src="@{/images/logo1.png}" alt="CineFlow 로고">
+                </a>
+                <img th:src="@{/images/uploads/err-img.png}" alt="404 오류 안내 이미지">
+                <h1>페이지를 찾을 수 없습니다</h1>
+                <p class="describe">요청하신 페이지가 존재하지 않거나 이동되었습니다.</p>
+                <div class="error-page-actions">
+                    <a th:href="@{/}" class="redbtn">메인으로 이동</a>
+                    <a th:href="@{/movies}" class="redbtn">전체 영화 보기</a>
+                    <a th:href="@{/booking}" class="redbtn">빠른예매</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:src="@{/js/jquery.js}"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/plugins2.js}"></script>
+<script th:src="@{/js/custom.js}"></script>
+</body>
+</html>

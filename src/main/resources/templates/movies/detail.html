@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko" class="no-js" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>CineFlow | 영화 상세</title>
+    <meta charset="UTF-8">
+    <meta name="description" content="TMDB 영화 상세 정보를 기준으로 보여주는 CineFlow 영화 상세 페이지">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Dosis:400,700,500|Nunito:300,400,600" />
+    <link rel="stylesheet" th:href="@{/css/plugins.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/home-cinema.css}">
+</head>
+<body>
+<div id="preloader">
+    <img class="logo" th:src="@{/images/logo1.png}" alt="logo" width="119" height="58">
+    <div id="status"><span></span><span></span></div>
+</div>
+
+<header th:replace="~{fragments/site-layout :: siteHeader('movies')}"></header>
+
+<main class="cinema-page storefront-detail-page">
+    <section class="cinema-page-hero movie-detail-top"
+             th:style="|background-image: linear-gradient(90deg, rgba(54, 63, 94, 0.72) 0%, rgba(255, 220, 230, 0.38) 48%, rgba(189, 238, 230, 0.24) 100%), url('${movie.backdropImageUrl}'); background-size: cover; background-position: center;|">
+        <div class="container">
+            <ul class="cinema-breadcrumb">
+                <li><a th:href="@{/}">홈</a></li>
+                <li><a th:href="@{/movies}">영화</a></li>
+                <li>영화 상세</li>
+            </ul>
+
+            <div class="detail-hero-shell">
+                <div class="detail-poster-col detail-poster-card">
+                    <img th:src="@{${movie.posterImageUrl}}"
+                         th:alt="${movie.posterAltText}"
+                         th:onerror="|this.onerror=null;this.src='@{/images/uploads/movie-single.jpg}'|">
+                </div>
+
+                <div class="detail-info-col detail-copy-panel">
+                    <div class="detail-title-group">
+                        <p class="hero-kicker" th:text="${movie.statusLabel}">현재 상영중</p>
+                        <h1 th:text="${movie.titleText}">영화 제목</h1>
+                        <p class="detail-original-title"
+                           th:if="${movie.originalTitleVisible}"
+                           th:text="${movie.originalTitle}">Original Title</p>
+                    </div>
+                    <p class="detail-tagline" th:text="${movie.shortDescriptionText}">영화 핵심 소개 문구</p>
+
+                    <ul class="detail-meta-list">
+                        <li>
+                            <strong>개봉일</strong>
+                            <span th:text="${movie.releaseDateValueText}">2026.04.10</span>
+                        </li>
+                        <li>
+                            <strong>장르</strong>
+                            <span th:text="${movie.genreText}">장르 미정</span>
+                        </li>
+                        <li>
+                            <strong>러닝타임</strong>
+                            <span th:text="${movie.runningTimeText}">시간 미정</span>
+                        </li>
+                        <li>
+                            <strong>관람등급</strong>
+                            <span th:text="${movie.ageRatingText}">등급 미정</span>
+                        </li>
+                    </ul>
+
+                    <div class="detail-score-row">
+                        <div class="score-item">
+                            <em>메타데이터</em>
+                            <strong>TMDB 기준</strong>
+                        </div>
+                        <div class="score-item">
+                            <em>예매 연결</em>
+                            <strong th:text="${movie.bookingOpenLabel}">예매 정보 준비 중</strong>
+                        </div>
+                    </div>
+
+                    <div class="detail-actions">
+                        <div class="detail-action-main">
+                            <a th:if="${movie.bookable}"
+                               th:href="@{/booking(movieId=${movie.bookingMovieId})}"
+                               class="hero-btn primary">예매하기</a>
+                            <span th:if="${!movie.bookable}" class="hero-btn detail-btn-disabled">상영시간표 준비 중</span>
+                            <a th:if="${movie.hasBookingLink()}"
+                               th:href="@{/booking(movieId=${movie.bookingMovieId})}"
+                               class="hero-btn secondary">상영시간표 보기</a>
+                            <a th:if="${!movie.hasBookingLink()}"
+                               th:href="@{/movies}"
+                               class="hero-btn secondary">다른 영화 보기</a>
+                        </div>
+                        <div class="detail-action-secondary">
+                            <a th:href="@{/booking/history}" class="icon-action">예매내역</a>
+                            <a th:href="@{/support}" class="icon-action">고객센터</a>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="detail-booking-sticky detail-hero-booking"
+                       th:classappend="${nextSchedule == null} ? ' is-pending' : ''">
+                    <h3>예매 요약</h3>
+                    <ul class="detail-booking-list">
+                        <li>
+                            <span>선택 작품</span>
+                            <strong th:text="${movie.titleText}">영화 제목</strong>
+                        </li>
+                        <li>
+                            <span>추천 극장</span>
+                            <strong th:text="${nextSchedule != null ? nextSchedule.theaterName : '일정 준비 중'}">CineFlow 강남</strong>
+                        </li>
+                        <li>
+                            <span>추천 날짜</span>
+                            <strong th:text="${nextSchedule != null ? #temporals.format(nextSchedule.showDate, 'yyyy.MM.dd (E)') : '일정 준비 중'}">2026.04.05 (토)</strong>
+                        </li>
+                        <li>
+                            <span>추천 시간</span>
+                            <strong th:text="${nextSchedule != null ? #temporals.format(nextSchedule.startTime, 'HH:mm') + ' ~ ' + #temporals.format(nextSchedule.endTime, 'HH:mm') : '시간표 미등록'}">19:40 ~ 21:52</strong>
+                        </li>
+                    </ul>
+
+                    <a th:if="${movie.bookable and nextSchedule != null}"
+                       th:href="@{/booking(movieId=${movie.bookingMovieId}, theaterId=${nextSchedule.theaterId}, date=${nextSchedule.showDate}, scheduleId=${nextSchedule.scheduleId})}"
+                       class="book-btn">바로 예매</a>
+                    <a th:if="${movie.bookable and nextSchedule == null}"
+                       th:href="@{/booking(movieId=${movie.bookingMovieId})}"
+                       class="book-btn">예매하기</a>
+                    <span th:if="${!movie.bookable}" class="book-btn book-btn--disabled">상영시간표 준비 중</span>
+                </aside>
+            </div>
+        </div>
+    </section>
+
+    <section class="cinema-page-body detail-body">
+        <div class="container">
+            <div class="detail-content-layout">
+                <div class="detail-main-sections">
+                    <article class="detail-block detail-block--story">
+                        <div class="section-header-inline detail-section-header">
+                            <h2>줄거리</h2>
+                            <span class="section-chip">OVERVIEW</span>
+                        </div>
+                        <p class="detail-copy" th:text="${movie.descriptionText}">영화 줄거리</p>
+                    </article>
+
+                    <article class="detail-block detail-block--info">
+                        <div class="section-header-inline detail-section-header">
+                            <h2>기본 정보</h2>
+                            <span class="section-chip">INFO</span>
+                        </div>
+                        <div class="info-table-grid">
+                            <div>
+                                <span>개봉일</span>
+                                <strong th:text="${movie.releaseDateValueText}">2026.04.10</strong>
+                            </div>
+                            <div>
+                                <span>장르</span>
+                                <strong th:text="${movie.genreText}">장르 미정</strong>
+                            </div>
+                            <div>
+                                <span>러닝타임</span>
+                                <strong th:text="${movie.runningTimeText}">시간 미정</strong>
+                            </div>
+                            <div>
+                                <span>관람등급</span>
+                                <strong th:text="${movie.ageRatingText}">등급 미정</strong>
+                            </div>
+                            <div>
+                                <span>상영 상태</span>
+                                <strong th:text="${movie.statusLabel}">현재 상영중</strong>
+                            </div>
+                            <div>
+                                <span>예매 상태</span>
+                                <strong th:text="${movie.bookingOpenLabel}">예매 정보 준비 중</strong>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="detail-block detail-block--theaters">
+                        <div class="section-header-inline detail-section-header">
+                            <h2>상영 극장</h2>
+                            <a th:if="${movie.hasBookingLink()}"
+                               th:href="@{/booking(movieId=${movie.bookingMovieId})}"
+                               class="detail-link">전체 상영시간표 보기</a>
+                        </div>
+
+                        <div class="theater-link-grid" th:if="${!#lists.isEmpty(theaters)}">
+                            <a class="theater-link-card"
+                               th:each="theater : ${theaters}"
+                               th:href="@{/booking(movieId=${movie.bookingMovieId}, theaterId=${theater.id})}">
+                                <strong th:text="${theater.name}">CineFlow 강남</strong>
+                                <span th:text="${theater.location}">서울 강남구</span>
+                            </a>
+                        </div>
+
+                        <div class="empty-state-card"
+                             th:if="${#lists.isEmpty(theaters)}"
+                             th:text="${movie.hasBookingLink()} ? '아직 등록된 상영 극장이 없습니다. 일정이 추가되면 이곳에 표시됩니다.' : '아직 등록된 상영 극장이 없습니다. 영화 정보는 먼저 확인할 수 있습니다.'">
+                            아직 등록된 상영 극장이 없습니다.
+                        </div>
+                    </article>
+
+                    <article class="detail-block detail-block--schedule">
+                        <div class="section-header-inline detail-section-header">
+                            <h2>상영시간표</h2>
+                            <a th:if="${movie.hasBookingLink()}"
+                               th:href="@{/booking(movieId=${movie.bookingMovieId})}"
+                               class="detail-link">빠른예매</a>
+                        </div>
+
+                        <div class="detail-schedule-board" th:if="${!#lists.isEmpty(theaterScheduleGroups)}">
+                            <section class="detail-schedule-group" th:each="group : ${theaterScheduleGroups}">
+                                <div class="detail-schedule-group-head">
+                                    <div>
+                                        <h3 th:text="${group.theaterName}">CineFlow 강남</h3>
+                                        <p th:text="${group.theaterLocation}">서울 강남구</p>
+                                    </div>
+                                    <a th:href="@{/booking(movieId=${movie.bookingMovieId}, theaterId=${group.theaterId})}" class="detail-link">이 극장 예매</a>
+                                </div>
+
+                                <ul class="detail-schedule-list">
+                                    <li th:each="schedule : ${group.schedules}">
+                                        <div class="detail-schedule-main">
+                                            <strong th:text="${#temporals.format(schedule.startTime, 'HH:mm') + ' · ' + schedule.screenDisplayName}">10:20 · 1관(IMAX)</strong>
+                                            <div class="detail-schedule-sub">
+                                                <span th:text="${#temporals.format(schedule.startTime, 'yyyy.MM.dd (E)')}">2026.04.04 (금)</span>
+                                                <span th:text="${'종료 ' + #temporals.format(schedule.endTime, 'HH:mm')}">종료 12:32</span>
+                                                <span th:text="${schedule.runningTime + '분'}">132분</span>
+                                                <span th:text="${'잔여 좌석 ' + schedule.availableSeats + '/' + schedule.totalSeats}">잔여 좌석 58/220</span>
+                                            </div>
+                                        </div>
+                                        <a class="hero-btn secondary"
+                                           th:href="@{/booking(movieId=${movie.bookingMovieId}, theaterId=${schedule.theaterId}, date=${schedule.showDate}, scheduleId=${schedule.scheduleId})}">예매하기</a>
+                                    </li>
+                                </ul>
+                            </section>
+                        </div>
+
+                        <div class="empty-state-card"
+                             th:if="${#lists.isEmpty(theaterScheduleGroups)}"
+                             th:text="${movie.hasBookingLink()} ? '등록된 상영시간표가 아직 없습니다. 일정이 추가되면 이곳에 표시됩니다.' : '상영시간표가 아직 등록되지 않았습니다.'">
+                            상영시간표가 아직 등록되지 않았습니다.
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <section class="detail-recommend-section">
+                <div class="section-header-inline">
+                    <h2>함께 보면 좋은 영화</h2>
+                    <a th:href="@{/movies}" class="detail-link">전체보기</a>
+                </div>
+
+                <div class="recommend-grid" th:if="${!#lists.isEmpty(relatedMovies)}">
+                    <article class="recommend-card" th:each="relatedMovie : ${relatedMovies}">
+                        <a th:href="@{/movies/{id}(id=${relatedMovie.detailRouteId})}">
+                            <img th:src="@{${relatedMovie.posterImageUrl}}"
+                                 th:alt="${relatedMovie.posterAltText}"
+                                 th:onerror="|this.onerror=null;this.src='@{/images/uploads/movie-single.jpg}'|">
+                        </a>
+                        <h4>
+                            <a th:href="@{/movies/{id}(id=${relatedMovie.detailRouteId})}" th:text="${relatedMovie.titleText}">추천 영화</a>
+                        </h4>
+                        <p th:text="${relatedMovie.statusLabel + ' · ' + relatedMovie.releaseDateText}">현재 상영중 · 개봉 2026.04.10</p>
+                        <p class="recommend-copy" th:text="${relatedMovie.overviewSnippetText}">추천 영화 요약</p>
+                        <a th:if="${relatedMovie.bookable}"
+                           th:href="@{/booking(movieId=${relatedMovie.bookingMovieId})}"
+                           class="detail-link">바로 예매</a>
+                        <a th:if="${!relatedMovie.bookable}"
+                           th:href="@{/movies/{id}(id=${relatedMovie.detailRouteId})}"
+                           class="detail-link">상세보기</a>
+                    </article>
+                </div>
+
+                <div class="empty-state-card" th:if="${#lists.isEmpty(relatedMovies)}">
+                    함께 볼 만한 공개 영화 추천을 준비 중입니다.
+                </div>
+            </section>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/site-layout :: siteFooter}"></footer>
+
+<script th:src="@{/js/jquery.js}"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/plugins2.js}"></script>
+<script th:src="@{/js/custom.js}"></script>
+</body>
+</html>
